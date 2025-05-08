@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KMeansClusterer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">KMeansClusterer.java</span></div><h1>KMeansClusterer.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.util.*;
+import org.apache.commons.math4.legacy.ml.distance.EuclideanDistance;
+
+public class KMeansClusterer { // in conjunction with RecommendationsProcessor
+    private List&lt;double[]&gt; centroids;
+    private List&lt;List&lt;String&gt;&gt; clusters;
+    private Map&lt;String, double[]&gt; normalizedRatings;
+    private Set&lt;String&gt; allSongsForCluster;
+    
+<span class="fc" id="L11">    public KMeansClusterer(Map&lt;String, double[]&gt; normalizedRatings, List&lt;String&gt; centroidSongs) {</span>
+<span class="fc" id="L12">        this.normalizedRatings = normalizedRatings;</span>
+<span class="fc" id="L13">        this.allSongsForCluster = new HashSet&lt;&gt;(normalizedRatings.keySet());</span>
+<span class="fc" id="L14">        this.clusters = new ArrayList&lt;&gt;();</span>
+        
+<span class="fc bfc" id="L16" title="All 2 branches covered.">        for (int i = 0; i &lt; centroidSongs.size(); i++) {</span>
+<span class="fc" id="L17">            clusters.add(new ArrayList&lt;&gt;());</span>
+        }
+<span class="fc" id="L19">        initializeCentroids(centroidSongs);</span>
+<span class="fc" id="L20">    }</span>
+    
+    public List&lt;List&lt;String&gt;&gt; getClusters() {
+<span class="fc" id="L23">        return clusters;</span>
+    }
+    
+    public void cluster(int iterations) {
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        for (int iter = 0; iter &lt; iterations; iter++) {</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">            for (List&lt;String&gt; cluster : clusters) {  // Clear past clusters</span>
+<span class="fc" id="L29">                cluster.clear();  </span>
+<span class="fc" id="L30">            }</span>
+            
+<span class="fc" id="L32">            assignToClusters();</span>
+<span class="fc" id="L33">            recalculateCentroids();</span>
+        }
+<span class="fc" id="L35">    }</span>
+    
+    private void initializeCentroids(List&lt;String&gt; centroidSongs) {
+<span class="fc" id="L38">        centroids = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (String song : centroidSongs) { </span>
+<span class="fc" id="L40">            double[] normalizedVector = normalizedRatings.get(song);</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">            if (normalizedVector == null) {</span>
+<span class="nc" id="L42">                throw new IllegalArgumentException(&quot;Selected song not found or removed: &quot; + song);</span>
+            }
+<span class="fc" id="L44">            centroids.add(normalizedVector);</span>
+<span class="fc" id="L45">        }</span>
+<span class="fc" id="L46">    }</span>
+    
+    private void assignToClusters() {
+<span class="fc" id="L49">        EuclideanDistance distance = new EuclideanDistance();</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for (String song : allSongsForCluster) {</span>
+<span class="fc" id="L51">            double[] songVector = normalizedRatings.get(song);</span>
+<span class="fc" id="L52">            double minDistance = Double.MAX_VALUE;</span>
+<span class="fc" id="L53">            int minIndex = 0;</span>
+            
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            for (int k = 0; k &lt; centroids.size(); k++) {</span>
+<span class="fc" id="L56">                double dist = distance.compute(songVector, centroids.get(k));</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">                if (dist &lt; minDistance) {</span>
+<span class="fc" id="L58">                    minDistance = dist;</span>
+<span class="fc" id="L59">                    minIndex = k;</span>
+                }
+            }
+<span class="fc" id="L62">            clusters.get(minIndex).add(song);</span>
+<span class="fc" id="L63">        }</span>
+<span class="fc" id="L64">    }</span>
+    
+    private void recalculateCentroids() {
+<span class="fc" id="L67">        int vectorLength = centroids.get(0).length;</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        for (int i = 0; i &lt; clusters.size(); i++) {</span>
+<span class="fc" id="L69">            List&lt;String&gt; cluster = clusters.get(i);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            if (cluster.isEmpty()) {</span>
+<span class="nc" id="L71">                continue;</span>
+            }
+            
+<span class="fc" id="L74">            double[] newCentroid = new double[vectorLength];</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (String song : cluster) {</span>
+<span class="fc" id="L76">                double[] songVector = normalizedRatings.get(song);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">                for (int j = 0; j &lt; vectorLength; j++) {</span>
+<span class="fc" id="L78">                    newCentroid[j] += songVector[j];</span>
+                }
+<span class="fc" id="L80">            }</span>
+            
+<span class="fc bfc" id="L82" title="All 2 branches covered.">            for (int j = 0; j &lt; vectorLength; j++) {</span>
+<span class="fc" id="L83">                newCentroid[j] /= cluster.size();</span>
+            }
+            
+<span class="fc" id="L86">            centroids.set(i, newCentroid);</span>
+        }
+<span class="fc" id="L88">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

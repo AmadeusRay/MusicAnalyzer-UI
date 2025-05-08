@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfidenceProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">ConfidenceProcessor.java</span></div><h1>ConfidenceProcessor.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ConfidenceProcessor implements Processor {
+    
+    private Map&lt;String, Users&gt; users;
+<span class="nc" id="L10">    private Map&lt;String, Double&gt; confidenceScores = new HashMap&lt;&gt;();</span>
+
+<span class="nc" id="L12">    public ConfidenceProcessor(Map&lt;String, Users&gt; users){</span>
+<span class="nc" id="L13">        this.users = users;</span>
+<span class="nc" id="L14">    }</span>
+
+    @Override
+    public String getMode(){
+<span class="nc" id="L18">        return &quot;confidence&quot;;</span>
+    }
+
+
+   @Override
+    public List&lt;String[]&gt; process(List&lt;String[]&gt; data) throws CustomException {
+     
+<span class="nc" id="L25">        PredictionProcessor predictionProcessor = new PredictionProcessor(users);</span>
+<span class="nc" id="L26">        List&lt;String[]&gt; predictions = predictionProcessor.process(data);</span>
+        
+    
+<span class="nc" id="L29">        calculateConfidenceScores(predictions);</span>
+   
+<span class="nc" id="L31">        return enhancePredictionsWithConfidence(predictions);</span>
+    }
+    
+    private void calculateConfidenceScores(List&lt;String[]&gt; predictions) {
+     
+<span class="nc" id="L36">        confidenceScores.clear();    // clear past scores / reset</span>
+        
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        for (String[] prediction : predictions) {         // calculate confidence for each prediction</span>
+<span class="nc" id="L40">            String song = prediction[0];</span>
+<span class="nc" id="L41">            String user = prediction[1];</span>
+<span class="nc" id="L42">            String songUser = song + &quot;:&quot; + user;</span>
+            
+
+<span class="nc" id="L45">            double confidence = calculateConfidenceForPrediction(prediction);           </span>
+            
+     
+<span class="nc" id="L48">            confidenceScores.put(songUser, confidence);        // store  confidence score</span>
+<span class="nc" id="L49">        }</span>
+<span class="nc" id="L50">    }</span>
+    
+    private double calculateConfidenceForPrediction(String[] prediction) {
+<span class="nc" id="L53">        String song = prediction[0];</span>
+<span class="nc" id="L54">        String user = prediction[1];</span>
+        
+     
+<span class="nc" id="L57">        int ratingCount = countRatings(song);   //# of users who rated the song</span>
+        
+
+<span class="nc" id="L60">        double ratingVariance = calculateRatingVariance(song);         // rating variance (consistency)</span>
+        
+
+<span class="nc" id="L63">        int similarUsers = countSimilarUsersWhoRatedSong(user, song);         // # of similar users who rated this song</span>
+        
+        // calculate confidence score
+        // high rating count, low variance, more similar users = high confidence
+<span class="nc" id="L67">        double confidenceScore = (ratingCount * 0.4) + ((1.0 / (ratingVariance + 0.1)) * 0.3) + (similarUsers * 0.3);</span>
+
+<span class="nc" id="L69">        return Math.min(1.0, confidenceScore / 10.0);         // normalize to 0-1 range</span>
+    }
+    
+
+    private int countRatings(String song) {
+<span class="nc" id="L74">        int count = 0;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (Users user : users.values()) {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (user.getSongRatings().containsKey(song)) {</span>
+<span class="nc" id="L77">                count++;</span>
+            }
+<span class="nc" id="L79">        }</span>
+<span class="nc" id="L80">        return count;</span>
+    }
+    
+
+    private double calculateRatingVariance(String song) {
+<span class="nc" id="L85">        List&lt;Integer&gt; ratings = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (Users user : users.values()) {   // collect all ratings for this song</span>
+<span class="nc" id="L88">            Integer rating = user.getSongRatings().get(song);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (rating != null) {</span>
+<span class="nc" id="L90">                ratings.add(rating);</span>
+            }
+<span class="nc" id="L92">        }</span>
+        
+        // handle case with no ratings
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (ratings.isEmpty()) {</span>
+<span class="nc" id="L96">            return 5.0; // high variance (low confidence) if no ratings</span>
+        }
+        
+        //  mean    // call the original version later
+<span class="nc" id="L100">        double sum = 0.0;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        for (Integer rating : ratings) {</span>
+<span class="nc" id="L102">            sum += rating;</span>
+<span class="nc" id="L103">        }</span>
+<span class="nc" id="L104">        double mean = sum / ratings.size();</span>
+        
+        //  variance       
+<span class="nc" id="L107">        double sumSquaredDifferences = 0.0;</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        for (Integer rating : ratings) {</span>
+<span class="nc" id="L109">            double diff = rating - mean;</span>
+<span class="nc" id="L110">            sumSquaredDifferences += diff * diff;</span>
+<span class="nc" id="L111">        }</span>
+        
+<span class="nc" id="L113">        return sumSquaredDifferences / ratings.size();</span>
+    }
+    
+    // count similar users who have rated a song
+    private int countSimilarUsersWhoRatedSong(String userName, String song) {
+<span class="nc" id="L118">        Users targetUser = users.get(userName);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (targetUser == null) {</span>
+<span class="nc" id="L120">            return 0;</span>
+        }
+        
+<span class="nc" id="L123">        int count = 0;</span>
+<span class="nc" id="L124">        double similarityThreshold = 2.0; // low values means more similar</span>
+        
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (Users otherUser : users.values()) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (!otherUser.getUserName().equals(userName) &amp;&amp; </span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                otherUser.getSongRatings().containsKey(song)) {</span>
+                
+                // call calculate similarity
+                try {
+<span class="nc" id="L132">                    double similarity = Similarity.calcEuclidDistance(targetUser, otherUser);</span>
+                    
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                    if (similarity &lt;= similarityThreshold) {</span>
+<span class="nc" id="L135">                        count++;</span>
+                    }
+<span class="nc" id="L137">                } catch (Exception e) { // skips user if error calculating similarity</span>
+<span class="nc" id="L138">                }</span>
+            }
+<span class="nc" id="L140">        }</span>
+        
+<span class="nc" id="L142">        return count;</span>
+    }
+    
+    private List&lt;String[]&gt; enhancePredictionsWithConfidence(List&lt;String[]&gt; predictions) {
+<span class="nc" id="L146">        List&lt;String[]&gt; enhancedPredictions = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        for (String[] prediction : predictions) {</span>
+<span class="nc" id="L149">            String song = prediction[0];</span>
+<span class="nc" id="L150">            String user = prediction[1];</span>
+<span class="nc" id="L151">            String rating = prediction[2];</span>
+            
+          
+            //double confidence = confidenceScores.getOrDefault(songUser, 0.0);
+    
+<span class="nc" id="L156">            String[] enhancedPrediction = new String[4];</span>
+<span class="nc" id="L157">            enhancedPrediction[0] = prediction[0]; // song</span>
+<span class="nc" id="L158">            enhancedPrediction[1] = prediction[1]; // user</span>
+<span class="nc" id="L159">            enhancedPrediction[2] = prediction[2]; // predicted rating</span>
+            //enhancedPrediction[3] = getConfidenceLevel(confidence); // confidence level
+
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (&quot;NaN&quot;.equals(rating)) {</span>
+<span class="nc" id="L163">                enhancedPrediction[3] = &quot;NaN&quot;;</span>
+            }else{
+<span class="nc" id="L165">                String songUser = song + &quot;:&quot; + user;</span>
+<span class="nc" id="L166">                double confidence = confidenceScores.getOrDefault(songUser, 0.0);</span>
+<span class="nc" id="L167">                enhancedPrediction[3] = getConfidenceLevel(confidence);</span>
+            }
+            
+<span class="nc" id="L170">            enhancedPredictions.add(enhancedPrediction);</span>
+<span class="nc" id="L171">        }</span>
+        
+<span class="nc" id="L173">        return enhancedPredictions;</span>
+    }
+    
+
+    private String getConfidenceLevel(double confidence) {
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (confidence &gt;= 0.7) {</span>
+<span class="nc" id="L179">            return &quot;High&quot;;</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        } else if (confidence &gt;= 0.4) {</span>
+<span class="nc" id="L181">            return &quot;Medium&quot;;</span>
+        } else {
+<span class="nc" id="L183">            return &quot;Low&quot;;</span>
+        }
+    }
+ 
+    public double getConfidenceScore(String song, String user) {
+<span class="nc" id="L188">        return confidenceScores.getOrDefault(song + &quot;:&quot; + user, 0.0);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

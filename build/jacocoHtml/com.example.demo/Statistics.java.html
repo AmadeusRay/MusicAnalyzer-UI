@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Statistics.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">Statistics.java</span></div><h1>Statistics.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.util.List;
+
+
+<span class="fc" id="L5">public class Statistics {</span>
+<span class="fc" id="L6">    private int count = 0;</span>
+<span class="fc" id="L7">    private double mean = 0.0;</span>
+<span class="fc" id="L8">    private double sumSquaredDeviations = 0.0; </span>
+<span class="fc" id="L9">    public double getMean() { return mean; }</span>
+<span class="nc" id="L10">    public int getCount() { return count; }</span>
+
+    public void updateStats(int rating){   //  still don't like this name
+<span class="fc" id="L13">        count++;</span>
+<span class="fc" id="L14">        double delta = rating - mean;</span>
+<span class="fc" id="L15">        mean += delta / count;</span>
+<span class="fc" id="L16">        sumSquaredDeviations += delta * (rating - mean);</span>
+<span class="fc" id="L17">    }</span>
+
+    public void computeStatsFromRatings(List&lt;Double&gt; ratings){
+<span class="fc" id="L20">        count = ratings.size();</span>
+<span class="pc bpc" id="L21" title="1 of 2 branches missed.">        if(count==0){</span>
+<span class="nc" id="L22">            mean = 0.0;</span>
+<span class="nc" id="L23">            sumSquaredDeviations = 0.0;</span>
+<span class="nc" id="L24">            return;</span>
+        }
+<span class="fc" id="L26">        computeMean(ratings);</span>
+<span class="fc" id="L27">        computeSumSquaredDeviations(ratings);</span>
+<span class="fc" id="L28">    }</span>
+
+    private void computeMean(List&lt;Double&gt; ratings){
+<span class="fc" id="L31">        double sum = 0.0;</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        for (Double rating : ratings){</span>
+<span class="fc" id="L33">            sum+=rating;</span>
+<span class="fc" id="L34">        }</span>
+<span class="fc" id="L35">        mean = sum / count;</span>
+<span class="fc" id="L36">    }</span>
+
+    private void computeSumSquaredDeviations(List&lt;Double&gt; ratings){
+<span class="fc" id="L39">        sumSquaredDeviations = 0.0;</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (Double rating : ratings) {</span>
+<span class="fc" id="L41">            double delta = rating - mean;</span>
+<span class="fc" id="L42">            sumSquaredDeviations += delta * delta;</span>
+<span class="fc" id="L43">        }</span>
+
+<span class="fc" id="L45">    }</span>
+
+    public double getStandardDeviation(){
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        return count &gt; 1 ? Math.sqrt(sumSquaredDeviations / count) : 0.0;</span>
+    }
+
+    public int getNumberOfRatings(){
+<span class="fc" id="L52">        return count;</span>
+    }
+
+    public double normalizeRating(double rating){
+<span class="fc" id="L56">        double stdDev = getStandardDeviation();</span>
+<span class="fc" id="L57">        double mean = getMean();</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        return stdDev != 0 ? (rating - mean) / stdDev : 0.0; </span>
+    }
+
+    private int calcWeightedAverage(Statistics userStats) {
+<span class="fc" id="L62">        double songMean = this.getMean();</span>
+<span class="fc" id="L63">        int numSongRatings = this.getNumberOfRatings();</span>
+<span class="fc" id="L64">        double userMean = userStats.getMean();</span>
+<span class="fc" id="L65">        int numUserRatings = userStats.getNumberOfRatings();</span>
+<span class="pc bpc" id="L66" title="2 of 4 branches missed.">        if (numSongRatings == 0 || numUserRatings == 0) {</span>
+<span class="nc" id="L67">            return 0;</span>
+        }
+        
+<span class="fc" id="L70">        return (int) Math.round((songMean * numSongRatings + userMean * numUserRatings) / (numSongRatings + numUserRatings));</span>
+    }
+   
+
+    public int getWeightedAverageRating(Statistics userStats) {
+<span class="fc" id="L75">        return calcWeightedAverage(userStats);</span>
+        }
+
+    public void resetStats(){
+
+<span class="fc" id="L80">        count = 0;</span>
+<span class="fc" id="L81">        mean = 0.;</span>
+
+<span class="fc" id="L83">        sumSquaredDeviations = 0.0;</span>
+<span class="fc" id="L84">    }</span>
+        
+   
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

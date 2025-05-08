@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 http://pmd.sourceforge.net/report_2_0_0.xsd" version="6.55.0" timestamp="2025-05-07T18:47:42.102">
+<file name="/Users/arash/Desktop/MusicAnalyzerUI/src/main/java/musicanalyzer/ConfidenceProcessor.java">
+<violation beginline="67" endline="67" begincolumn="35" endcolumn="51" rule="UselessParentheses" ruleset="Code Style" package="musicanalyzer" class="ConfidenceProcessor" method="calculateConfidenceForPrediction" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#uselessparentheses" priority="4">
+Useless parentheses.
+</violation>
+</file>
+<file name="/Users/arash/Desktop/MusicAnalyzerUI/src/main/java/musicanalyzer/DiversityProcessor.java">
+<violation beginline="104" endline="143" begincolumn="9" endcolumn="1" rule="CognitiveComplexity" ruleset="Design" package="musicanalyzer" class="DiversityProcessor" method="predictExpectedRating" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_design.html#cognitivecomplexity" priority="3">
+The method 'predictExpectedRating(Users, String)' has a cognitive complexity of 17, current threshold is 15
+</violation>
+</file>
+<file name="/Users/arash/Desktop/MusicAnalyzerUI/src/main/java/musicanalyzer/FileUploadController.java">
+<violation beginline="8" endline="8" begincolumn="1" endcolumn="20" rule="UnnecessaryImport" ruleset="Code Style" package="musicanalyzer" class="FileUploadController" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused import 'java.io.File'
+</violation>
+</file>
+<file name="/Users/arash/Desktop/MusicAnalyzerUI/src/main/java/musicanalyzer/ProcessorFactory.java">
+<violation beginline="9" endline="37" begincolumn="19" endcolumn="4" rule="CyclomaticComplexity" ruleset="Design" package="musicanalyzer" class="ProcessorFactory" method="createProcessor" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'createProcessor(String, DataManager)' has a cyclomatic complexity of 10.
+</violation>
+<violation beginline="39" endline="65" begincolumn="21" endcolumn="5" rule="CyclomaticComplexity" ruleset="Design" package="musicanalyzer" class="ProcessorFactory" method="selectedMode" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'selectedMode(String)' has a cyclomatic complexity of 10.
+</violation>
+</file>
+</pmd>

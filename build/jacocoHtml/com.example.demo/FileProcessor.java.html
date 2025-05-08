@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">FileProcessor.java</span></div><h1>FileProcessor.java</h1><pre class="source lang-java linenums">package com.example.demo;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.List;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+
+<span class="nc" id="L11">public class FileProcessor {</span>
+
+    public static List&lt;String[]&gt; processInputFile(String inputfile, DataManager dataManager)  
+    throws IOException, CustomException{ 
+    
+
+<span class="fc" id="L17">        try (Reader reader = new FileReader(inputfile)) {</span>
+<span class="fc" id="L18">            Iterable&lt;CSVRecord&gt; records = CSVFormat.DEFAULT.parse(reader);</span>
+       
+<span class="fc" id="L20">            populateDataManager(records, dataManager);</span>
+           
+<span class="fc" id="L22">            dataManager.findMissingSongs();</span>
+
+<span class="fc" id="L24">            dataManager.calculateAllUserStats();</span>
+
+<span class="fc" id="L26">            return dataManager.prepareSongStatsPrint();</span>
+        }
+    }
+
+   
+    private static void populateDataManager(Iterable&lt;CSVRecord&gt; records, DataManager dataManager) throws CustomException
+    {
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">        if (dataManager == null) {</span>
+<span class="nc" id="L34">        throw new IllegalArgumentException(&quot;DataManager cannot be null&quot;);  </span>
+    }
+
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        for (CSVRecord record : records)</span>
+        {
+            try{
+<span class="fc" id="L41">                int rating = DataValidation.validateRecord(record);</span>
+<span class="fc" id="L42">                String userName = record.get(1);</span>
+<span class="fc" id="L43">                String song = record.get(0);</span>
+
+<span class="fc" id="L45">                dataManager.recordRating(userName, song, rating);</span>
+<span class="nc" id="L46">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L47">                System.err.println(&quot;Error: Rating '&quot; + record.get(2) + &quot;' not an Int.'&quot;);</span>
+<span class="nc" id="L48">                System.exit(0);</span>
+<span class="nc" id="L49">            } catch (CustomException e) {</span>
+<span class="nc" id="L50">                System.err.println(e.getMessage());</span>
+<span class="nc" id="L51">                System.exit(0);</span>
+<span class="pc" id="L52">            }</span>
+<span class="fc" id="L53">        }</span>
+<span class="fc" id="L54">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

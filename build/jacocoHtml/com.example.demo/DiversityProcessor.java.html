@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DiversityProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">DiversityProcessor.java</span></div><h1>DiversityProcessor.java</h1><pre class="source lang-java linenums">package com.example.demo;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class DiversityProcessor implements Processor {
+    private Map&lt;String, Users&gt; users;
+
+<span class="nc" id="L12">    public DiversityProcessor(Map&lt;String, Users&gt; users){</span>
+<span class="nc" id="L13">        this.users = users;</span>
+<span class="nc" id="L14">    }</span>
+
+    @Override
+    public String getMode(){
+<span class="nc" id="L18">        return &quot;diversity&quot;;</span>
+    }
+
+    @Override
+    public List&lt;String[]&gt; process(List&lt;String[]&gt; data) throws CustomException{
+
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        for (Users user : users.values()){</span>
+<span class="nc" id="L25">            user.calcUserSongStatistics();</span>
+            
+<span class="nc" id="L27">        }</span>
+
+<span class="nc" id="L29">        List&lt;String[]&gt; results = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        for (Users user : users.values()){</span>
+<span class="nc" id="L32">            Set&lt;String&gt; allSongs = getAllSongs(); // make later</span>
+
+<span class="nc" id="L34">            Set&lt;String&gt; unratedSongs = getUnratedSongs(user, allSongs); </span>
+
+<span class="nc bnc" id="L36" title="All 2 branches missed.">            for (String song : unratedSongs) {</span>
+
+<span class="nc" id="L38">                double similarity = calculateUserSongSimilarity(user, song);</span>
+<span class="nc" id="L39">                String recommendationType = categorizeRecommendation(similarity);</span>
+<span class="nc" id="L40">                int expectedRating = predictExpectedRating(user, song);</span>
+          
+
+
+<span class="nc" id="L44">            String[] recommendation = new String[4];</span>
+<span class="nc" id="L45">            recommendation[0] = user.getUserName();</span>
+<span class="nc" id="L46">            recommendation[1] = song;</span>
+<span class="nc" id="L47">            recommendation[2] = recommendationType;</span>
+<span class="nc" id="L48">            recommendation[3] = String.valueOf(expectedRating);</span>
+
+<span class="nc" id="L50">            results.add(recommendation);</span>
+<span class="nc" id="L51">         }</span>
+<span class="nc" id="L52">        }</span>
+
+<span class="nc" id="L54">        return results;</span>
+    }
+
+    private Set&lt;String&gt; getAllSongs(){
+<span class="nc" id="L58">        Set&lt;String&gt; allSongs = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        for (Users user : users.values()){</span>
+<span class="nc" id="L60">            allSongs.addAll(user.getSongRatings().keySet());</span>
+<span class="nc" id="L61">        }</span>
+<span class="nc" id="L62">        return allSongs;</span>
+    }
+
+    private Set&lt;String&gt; getUnratedSongs(Users user, Set&lt;String&gt; allSongs){
+<span class="nc" id="L66">        Set&lt;String&gt; unratedSongs = new HashSet&lt;&gt;(allSongs);</span>
+<span class="nc" id="L67">        unratedSongs.removeAll(user.getSongRatings().keySet());</span>
+<span class="nc" id="L68">        return unratedSongs;</span>
+    }
+
+    private double calculateUserSongSimilarity(Users user, String song){
+<span class="nc" id="L72">        double totalSimilarity = 0.0;</span>
+<span class="nc" id="L73">        int count = 0;</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (Users otherUser : users.values()){</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (!otherUser.getUserName().equals(user.getUserName()) &amp;&amp;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            otherUser.getSongRatings().containsKey(song)){      </span>
+                try {
+<span class="nc" id="L79">                double similarity = Similarity.calcEuclidDistance(user, otherUser);</span>
+<span class="nc" id="L80">                totalSimilarity += similarity;</span>
+<span class="nc" id="L81">                count ++;</span>
+<span class="nc" id="L82">                } catch (Exception e){</span>
+<span class="nc" id="L83">                    continue;</span>
+<span class="nc" id="L84">                }</span>
+            }
+<span class="nc" id="L86">        }</span>
+       
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    return count &gt; 0 ? totalSimilarity / count : 0.0;</span>
+}
+
+private String categorizeRecommendation(double similarity){
+
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (similarity &lt;= 1.3){</span>
+<span class="nc" id="L94">        return &quot;safe_bet&quot;;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    } else if (similarity &lt;= 2.0){</span>
+<span class="nc" id="L96">        return &quot;balanced&quot;;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    } else if (similarity &lt;= 3.0){</span>
+<span class="nc" id="L98">        return &quot;exploratory&quot;;</span>
+    } else {
+<span class="nc" id="L100">        return &quot;discovery&quot;;</span>
+    }
+}
+
+private int predictExpectedRating(Users user, String song) 
+{
+    try{
+<span class="nc" id="L107">       SimilarityProcessor similarityProcessor = new SimilarityProcessor(users);</span>
+<span class="nc" id="L108">        List&lt;String[]&gt; similarities = similarityProcessor.process(new ArrayList&lt;&gt;());</span>
+
+<span class="nc" id="L110">    Predictions prediction = new Predictions(users, similarities);</span>
+<span class="nc" id="L111">    String[] predictEntry = prediction.predictRating(user, song);</span>
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (&quot;NaN&quot;.equals(predictEntry[2])){</span>
+
+<span class="nc" id="L115">        double sum = 0.0;</span>
+<span class="nc" id="L116">        int count = 0;</span>
+
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        for (Users otherUsers : users.values()){</span>
+<span class="nc" id="L119">            Integer rating = otherUsers.getSongRatings().get(song);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (rating != null){</span>
+<span class="nc" id="L121">                sum += rating;</span>
+<span class="nc" id="L122">                count++;</span>
+            }
+<span class="nc" id="L124">        }</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        return count &gt; 0 ? (int) Math.round(sum / count) : 3;</span>
+    } else{
+<span class="nc" id="L127">        return Integer.parseInt(predictEntry[2]);</span>
+    }
+<span class="nc" id="L129">} catch (Exception e) {</span>
+
+<span class="nc" id="L131">        double sum = 0.0;</span>
+<span class="nc" id="L132">        int count = 0;</span>
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        for (Users otherUsers : users.values()){</span>
+<span class="nc" id="L135">            Integer rating = otherUsers.getSongRatings().get(song);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (rating != null){</span>
+<span class="nc" id="L137">                sum += rating;</span>
+<span class="nc" id="L138">                count++;</span>
+            }
+<span class="nc" id="L140">        }</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        return count &gt; 0 ? (int) Math.round(sum / count) : 3;</span>
+    }
+}
+
+
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

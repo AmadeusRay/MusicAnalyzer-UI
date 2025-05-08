@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RecommendationProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">RecommendationProcessor.java</span></div><h1>RecommendationProcessor.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+// connected with KMeansClustrer 
+
+public class RecommendationProcessor implements Processor {
+    private Map&lt;String, Users&gt; users;
+    private List&lt;String&gt; recommendSongs;
+    private Map&lt;String, double[]&gt; normalizedRatings;
+    private Set&lt;String&gt; allSongsForCluster;
+    
+<span class="fc" id="L17">    public RecommendationProcessor(Map&lt;String, Users&gt; users, List&lt;String&gt; recommendSongs) {</span>
+<span class="fc" id="L18">        Set&lt;String&gt; songSet = new HashSet&lt;&gt;(recommendSongs);</span>
+<span class="pc bpc" id="L19" title="1 of 2 branches missed.">        if (songSet.size() &lt; recommendSongs.size()) {</span>
+<span class="nc" id="L20">            throw new IllegalArgumentException(&quot;Error: Duplicated songs inside recommendation list&quot;);</span>
+        }
+<span class="fc" id="L22">        this.users = users;</span>
+<span class="fc" id="L23">        this.recommendSongs = recommendSongs;</span>
+<span class="fc" id="L24">        this.allSongsForCluster = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L25">    }</span>
+
+    @Override
+    public String getMode(){
+<span class="fc" id="L29">        return &quot;recommendations&quot;;</span>
+    }
+    
+    @Override
+    public List&lt;String[]&gt; process(List&lt;String[]&gt; data) throws CustomException {
+
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (users.isEmpty()) {</span>
+<span class="nc" id="L36">            throw new CustomException(&quot;Error: Cannot calculate recommendations: no user data&quot;);</span>
+        }
+        
+        // Get all predictions first
+<span class="fc" id="L40">        PredictionProcessor predictionProcessor = new PredictionProcessor(users);</span>
+<span class="fc" id="L41">        List&lt;String[]&gt; predictions = predictionProcessor.process(data);</span>
+        
+        // Fill in missing ratings
+<span class="fc" id="L44">        fillUsersWithPredictions(predictions);</span>
+<span class="fc" id="L45">        ensureAllRatingsFilled();</span>
+        
+        // Prep data forcluster
+<span class="fc" id="L48">        List&lt;Users&gt; userList = new ArrayList&lt;&gt;(users.values());</span>
+<span class="fc" id="L49">        collectAllSongs(userList);</span>
+<span class="fc" id="L50">        removeSongsWithIdenticalRatings(userList);</span>
+        
+<span class="fc" id="L52">        normalizedRatings = computeNormalizedRatings(userList);</span>
+
+        
+        // kmean clustering
+<span class="fc" id="L56">        KMeansClusterer clusterer = new KMeansClusterer(normalizedRatings, recommendSongs);</span>
+<span class="fc" id="L57">        clusterer.cluster(10); // 10 iterations that p5 mentioned</span>
+        
+        
+<span class="fc" id="L60">        return compileRecommendations(clusterer.getClusters());</span>
+    }
+    
+    private void collectAllSongs(List&lt;Users&gt; userList) {
+<span class="fc" id="L64">        allSongsForCluster.clear();</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        for (Users user : userList) {</span>
+<span class="fc" id="L66">            allSongsForCluster.addAll(user.getSongRatings().keySet());</span>
+<span class="fc" id="L67">        }</span>
+<span class="fc" id="L68">    }</span>
+    
+    private void removeSongsWithIdenticalRatings(List&lt;Users&gt; userList) {
+<span class="fc" id="L71">        Set&lt;String&gt; songsToRemove = getSongsToRemove(userList);</span>
+<span class="fc" id="L72">        allSongsForCluster.removeAll(songsToRemove);</span>
+<span class="fc" id="L73">    }</span>
+    
+    private void fillUsersWithPredictions(List&lt;String[]&gt; predictions) {
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        for (String[] prediction : predictions) {</span>
+<span class="fc" id="L77">            String song = prediction[0];         //ew</span>
+<span class="fc" id="L78">            String userName = prediction[1];</span>
+<span class="fc" id="L79">            String ratingStr = prediction[2];     </span>
+<span class="fc" id="L80">            Users user = users.get(userName);</span>
+<span class="fc" id="L81">            int rating = 0;</span>
+            
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (&quot;NaN&quot;.equals(ratingStr)) {</span>
+<span class="fc" id="L84">                Statistics songStats = getSongStatistics(song);</span>
+<span class="fc" id="L85">                rating = songStats.getWeightedAverageRating(user.getStats());</span>
+<span class="fc" id="L86">            } else {</span>
+<span class="nc" id="L87">                rating = Integer.parseInt(ratingStr);</span>
+            }
+            
+<span class="fc" id="L90">            user.rateSong(song, rating);</span>
+<span class="fc" id="L91">            user.getMissingSongs().remove(song);</span>
+<span class="fc" id="L92">        }</span>
+<span class="fc" id="L93">    }</span>
+    
+    private Statistics getSongStatistics(String song) {
+<span class="fc" id="L96">        Statistics songStats = new Statistics();</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        for (Users user : users.values()) {</span>
+<span class="fc" id="L98">            Integer rating = user.getSongRatings().get(song);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">            if (rating != null) {</span>
+<span class="fc" id="L100">                songStats.updateStats(rating);</span>
+            }
+<span class="fc" id="L102">        }</span>
+<span class="fc" id="L103">        return songStats;</span>
+    }
+    
+    private void ensureAllRatingsFilled() {
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        for (Users user : users.values()) {</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">            for (String song : allSongsForCluster) {</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (!user.getSongRatings().containsKey(song)) {</span>
+<span class="nc" id="L110">                    Statistics songStats = getSongStatistics(song); </span>
+<span class="nc" id="L111">                    int rating = songStats.getWeightedAverageRating(user.getStats());  //too nested</span>
+<span class="nc" id="L112">                    user.rateSong(song, rating);</span>
+<span class="nc" id="L113">                    user.calcUserSongStatistics();</span>
+                }
+<span class="nc" id="L115">            }</span>
+<span class="fc" id="L116">        }</span>
+<span class="fc" id="L117">    }</span>
+    
+    private Set&lt;String&gt; getSongsToRemove(List&lt;Users&gt; userList) {
+<span class="fc" id="L120">        Set&lt;String&gt; songsToRemove = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        for (String song : allSongsForCluster) {</span>
+<span class="fc" id="L122">            Set&lt;Integer&gt; uniqueRatings = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">            for (Users user : userList) {</span>
+<span class="fc" id="L124">                uniqueRatings.add(user.getSongRatings().get(song));</span>
+<span class="fc" id="L125">            }</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">            if (uniqueRatings.size() == 1) {</span>
+<span class="nc" id="L127">                songsToRemove.add(song);</span>
+            }
+<span class="fc" id="L129">        }</span>
+<span class="fc" id="L130">        return songsToRemove;</span>
+    }
+    
+    private Map&lt;String, double[]&gt; computeNormalizedRatings(List&lt;Users&gt; userList) {
+<span class="fc" id="L134">        Map&lt;String, double[]&gt; normalizedRatings = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">        for (String song : allSongsForCluster) {</span>
+<span class="fc" id="L136">            Statistics stats = new Statistics();</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">            for (Users user : userList) {</span>
+<span class="fc" id="L138">                stats.updateStats(user.getSongRatings().get(song));</span>
+<span class="fc" id="L139">            }</span>
+<span class="fc" id="L140">            double[] normalized = new double[userList.size()];</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">            for (int i = 0; i &lt; userList.size(); i++) {</span>
+<span class="fc" id="L142">                normalized[i] = stats.normalizeRating(userList.get(i).getSongRatings().get(song));</span>
+            }
+<span class="fc" id="L144">            normalizedRatings.put(song, normalized);</span>
+<span class="fc" id="L145">        }</span>
+<span class="fc" id="L146">        return normalizedRatings;</span>
+    }
+    
+    private List&lt;String[]&gt; compileRecommendations(List&lt;List&lt;String&gt;&gt; clusters) {
+<span class="fc" id="L150">        Map&lt;String, List&lt;String&gt;&gt; recommendationsMap = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        for (int i = 0; i &lt; recommendSongs.size(); i++) {</span>
+<span class="fc" id="L152">            String userChoice = recommendSongs.get(i);</span>
+<span class="fc" id="L153">            List&lt;String&gt; clusterSongs = new ArrayList&lt;&gt;(clusters.get(i));</span>
+<span class="fc" id="L154">            List&lt;String&gt; recs = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">            for (String song : clusterSongs) {</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">                if (!recommendSongs.contains(song)) {</span>
+<span class="fc" id="L157">                    recs.add(song);</span>
+                }
+<span class="fc" id="L159">            }</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">            if (!recs.isEmpty()) { // Only include if there are recommendations</span>
+<span class="fc" id="L161">                recommendationsMap.put(userChoice, recs);</span>
+            }
+        }
+        
+<span class="fc" id="L165">        List&lt;String&gt; sortedUserChoices = new ArrayList&lt;&gt;(recommendationsMap.keySet());</span>
+<span class="fc" id="L166">        sortedUserChoices.sort(String::compareTo);</span>
+
+<span class="fc" id="L168">        List&lt;String[]&gt; results = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        for (String userChoice : sortedUserChoices) {</span>
+<span class="fc" id="L170">            List&lt;String&gt; recs = recommendationsMap.get(userChoice);</span>
+<span class="fc" id="L171">            recs.sort(String::compareTo);</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">            for (String rec : recs) {</span>
+<span class="fc" id="L173">                results.add(new String[]{userChoice, rec});</span>
+<span class="fc" id="L174">            }</span>
+<span class="fc" id="L175">        }</span>
+<span class="fc" id="L176">        return results;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Users.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">Users.java</span></div><h1>Users.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.util.*;
+
+public class Users{
+    private String userName;
+    private Map&lt;String, Integer&gt; userSongRatings; 
+    private Statistics stats;
+    private boolean isCooperative; // if Standard Deviation is 0, then fail. 
+<span class="fc" id="L9">    private List&lt;String&gt; missingSongs = new ArrayList&lt;&gt;(); </span>
+ 
+<span class="fc" id="L11">    public Users(String userName){</span>
+<span class="fc" id="L12">        this.userName = userName;</span>
+<span class="fc" id="L13">        this.userSongRatings = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L14">        this.stats = new Statistics();</span>
+<span class="fc" id="L15">    }</span>
+
+    public void rateSong(String song, int rating){
+<span class="fc" id="L18">        userSongRatings.put(song, rating);</span>
+<span class="fc" id="L19">    }</span>
+
+    public void setMissingSongs(List&lt;String&gt; missing){
+<span class="fc" id="L22">        this.missingSongs = missing;</span>
+<span class="fc" id="L23">    }</span>
+
+    public List&lt;String&gt; getMissingSongs(){   
+<span class="fc" id="L26">        return missingSongs;</span>
+    }
+
+    public void calcUserSongStatistics(){
+<span class="pc bpc" id="L30" title="1 of 2 branches missed.">        if (userSongRatings.isEmpty()){   </span>
+<span class="nc" id="L31">            isCooperative = false;</span>
+<span class="nc" id="L32">            return;</span>
+        }
+
+<span class="fc" id="L35">        stats.computeStatsFromRatings(getRatingsAsList());</span>
+
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        isCooperative = stats.getStandardDeviation() != 0;</span>
+<span class="fc" id="L38">    }</span>
+
+    public String getUserName(){
+<span class="fc" id="L41">        return userName;</span>
+    }
+
+    public Map&lt;String, Integer&gt; getSongRatings(){
+<span class="fc" id="L45">        return userSongRatings;</span>
+    }
+
+    public Statistics getStats(){
+<span class="fc" id="L49">        return stats;</span>
+    }
+
+    public boolean isCooperative()
+    {
+<span class="fc" id="L54">        return isCooperative;</span>
+    }
+
+    public Map&lt;String, Double&gt; getNormalizedRatings() {
+<span class="fc" id="L58">        Map&lt;String, Double&gt; normalizedRatings = new HashMap&lt;&gt;();</span>
+
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        for (Map.Entry&lt;String, Integer&gt; entry : userSongRatings.entrySet()) {</span>
+<span class="fc" id="L61">            String song = entry.getKey();</span>
+<span class="fc" id="L62">            double rating = entry.getValue();</span>
+    
+<span class="fc" id="L64">            double normalizedRating = stats.normalizeRating(rating);</span>
+<span class="fc" id="L65">            normalizedRatings.put(song, normalizedRating);</span>
+<span class="fc" id="L66">        }</span>
+<span class="fc" id="L67">        return normalizedRatings;</span>
+    }
+
+    public List&lt;Double&gt; getRatingsAsList() {
+<span class="fc" id="L71">        List&lt;Double&gt; ratingsList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        for (Integer rating : userSongRatings.values()) {</span>
+<span class="fc" id="L73">            ratingsList.add(rating.doubleValue()); </span>
+<span class="fc" id="L74">        }</span>
+<span class="fc" id="L75">        return ratingsList;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

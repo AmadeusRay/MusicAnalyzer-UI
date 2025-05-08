@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimilarityProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">SimilarityProcessor.java</span></div><h1>SimilarityProcessor.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class SimilarityProcessor implements Processor{
+    private Map&lt;String, Users&gt; users;
+
+<span class="fc" id="L9">    public SimilarityProcessor(Map&lt;String, Users&gt; users){</span>
+<span class="fc" id="L10">        this.users = users;</span>
+<span class="fc" id="L11">    }</span>
+
+    @Override
+    public List&lt;String[]&gt; process(List&lt;String[]&gt; data) throws CustomException {
+<span class="fc bfc" id="L15" title="All 2 branches covered.">           for (Users user : users.values()) {</span>
+<span class="fc" id="L16">            user.calcUserSongStatistics();</span>
+<span class="fc" id="L17">        }</span>
+
+<span class="fc" id="L19">        return calculateSimilarities(users);</span>
+    }
+
+    @Override
+    public String getMode(){
+<span class="nc" id="L24">        return &quot;similarity&quot;;</span>
+    }
+
+    /// keep everything below on the surface 
+
+    public static List&lt;String[]&gt; calculateSimilarities(Map&lt;String, Users&gt; users) throws CustomException {
+<span class="fc" id="L30">        List&lt;String&gt; userList = new ArrayList&lt;&gt;(users.keySet());</span>
+<span class="fc" id="L31">        List&lt;String[]&gt; similarityResults = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L32">        boolean twoCooperative = false;</span>
+
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (int i = 0; i &lt; userList.size(); i++) {</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            for (int j = i + 1; j &lt; userList.size(); j++) {</span>
+<span class="fc" id="L36">               Users user1 = users.get(userList.get(i));</span>
+<span class="fc" id="L37">               Users user2 = users.get(userList.get(j));</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">               if (processUserPair(user1, user2, similarityResults)){</span>
+<span class="fc" id="L39">                twoCooperative = true;</span>
+               }
+            }
+        }
+
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if (!twoCooperative){</span>
+<span class="nc" id="L45">            throw new CustomException(&quot;must have at least two cooperative users for user similarity&quot;);</span>
+        }
+<span class="fc" id="L47">        return similarityResults;</span>
+    }
+
+        private static boolean processUserPair(Users user1, Users user2, List&lt;String[]&gt; similarityResults) {
+<span class="fc bfc" id="L51" title="All 2 branches covered.">            if (areCooperative(user1, user2)){</span>
+<span class="fc" id="L52">                double similarity = Similarity.calcEuclidDistance(user1, user2);</span>
+<span class="fc" id="L53">                String userName1 = user1.getUserName();</span>
+<span class="fc" id="L54">                String userName2 = user2.getUserName();</span>
+
+<span class="fc" id="L56">                similarityResults.add(new String[] {userName1, userName2, Double.toString(similarity)});   </span>
+<span class="fc" id="L57">                return true;</span>
+            }
+<span class="fc" id="L59">            return false; </span>
+        }
+
+        private static boolean areCooperative(Users user1, Users user2){     
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">            return user1.isCooperative() &amp;&amp; user2.isCooperative();</span>
+        }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

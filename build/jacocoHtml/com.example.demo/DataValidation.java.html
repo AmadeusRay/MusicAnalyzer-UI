@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataValidation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">DataValidation.java</span></div><h1>DataValidation.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import org.apache.commons.csv.CSVRecord;
+
+<span class="nc" id="L4">public class DataValidation{</span>
+    static int validateRecord(CSVRecord record) throws CustomException{
+<span class="fc" id="L6">        String songSizeCheck = record.get(0);</span>
+<span class="fc" id="L7">        String userSizeCheck = record.get(1);</span>
+<span class="fc" id="L8">        String ratingsSizeCheck = record.get(2);</span>
+
+<span class="fc" id="L10">        validateFields(songSizeCheck, userSizeCheck, ratingsSizeCheck);</span>
+<span class="fc" id="L11">        validateFieldsAmount(record.size());</span>
+<span class="fc" id="L12">        return validatingRating(ratingsSizeCheck);</span>
+    }
+    
+    private static void validateFields(String songSizeCheck, String userSizeCheck, String ratingsSizeCheck) throws CustomException {
+<span class="pc bpc" id="L16" title="3 of 6 branches missed.">        if (songSizeCheck.isEmpty() || userSizeCheck.isEmpty() || ratingsSizeCheck.isEmpty())</span>
+        {
+<span class="nc" id="L18">            throw new CustomException(&quot;Error: Entry is missing fields (song, user, rating)&quot;);</span>
+        }
+<span class="fc" id="L20">    }</span>
+
+        private static void validateFieldsAmount(int fieldsAmount) throws CustomException {
+<span class="pc bpc" id="L23" title="1 of 2 branches missed.">            if (fieldsAmount &gt; 3) {</span>
+<span class="nc" id="L24">                throw new CustomException(&quot;Error: Entry has extra fields (song, user, rating)&quot;);</span>
+            }   
+<span class="fc" id="L26">        }</span>
+
+        private static int validatingRating(String ratingsRange) throws CustomException {
+<span class="fc" id="L29">            int rating = Integer.parseInt(ratingsRange);</span>
+
+<span class="pc bpc" id="L31" title="2 of 4 branches missed.">            if (rating &lt; 0 || rating &gt; 5) {</span>
+<span class="nc" id="L32">                throw new CustomException(&quot;Error: Ratings must be between 1 and 5&quot;);</span>
+        }
+<span class="fc" id="L34">        return rating;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

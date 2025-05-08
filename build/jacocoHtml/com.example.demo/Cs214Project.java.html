@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Cs214Project.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">final-project-AmadeusRay</a> &gt; <a href="index.source.html" class="el_package">com.example.demo</a> &gt; <span class="el_source">Cs214Project.java</span></div><h1>Cs214Project.java</h1><pre class="source lang-java linenums">package com.example.demo;
+import java.io.IOException;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.List;
+
+@SpringBootApplication
+<span class="fc" id="L8">public class Cs214Project {</span>
+ 
+
+    public static void main(String[] args) {
+        
+   
+    try{
+        
+<span class="pc bpc" id="L16" title="2 of 4 branches missed.">        if (args.length &gt; 0 &amp;&amp; args[0].equals(&quot;-i&quot;)) {</span>
+            try {
+<span class="nc" id="L18">                Processor processor = ProcessorFactory.createInteractiveProcessor();</span>
+<span class="nc" id="L19">                processor.process(null);</span>
+<span class="nc" id="L20">            } catch (Exception e) {</span>
+<span class="nc" id="L21">                System.err.println(&quot;Error: &quot; + e.getMessage());</span>
+<span class="nc" id="L22">                System.exit(0);</span>
+<span class="nc" id="L23">            }</span>
+        } else {
+<span class="fc" id="L25">            SpringApplication.run(Cs214Project.class, args);</span>
+        }
+    
+      
+<span class="fc" id="L29">        String inputFile = args[0];</span>
+<span class="fc" id="L30">        String outputFile = args[1];</span>
+
+
+<span class="fc" id="L33">        FileValidator.validate(args);</span>
+
+<span class="fc" id="L35">        DataManager dataManager = new DataManager(); </span>
+<span class="fc" id="L36">        List&lt;String[]&gt; songStatsList = FileProcessor.processInputFile(inputFile, dataManager);  </span>
+
+<span class="fc" id="L38">        dataManager.calculateAllUserStats();</span>
+<span class="fc" id="L39">        dataManager.findMissingSongs();</span>
+
+<span class="fc" id="L41">        Processor processor = ProcessorFactory.createProcessor(args,dataManager); </span>
+
+<span class="fc" id="L43">        String mode = processor.getMode();</span>
+<span class="fc" id="L44">        System.out.println(&quot;Starting with mode: &quot; + mode);</span>
+<span class="fc" id="L45">        dataManager.checkCooperativeUsers(mode);</span>
+
+       
+<span class="fc" id="L48">        List&lt;String[]&gt; results = processor.process(songStatsList);</span>
+     
+        
+    
+<span class="fc" id="L52">        OutputProcessor.writeOutputFile(outputFile, results, mode);</span>
+    
+<span class="nc" id="L54">    }catch(IllegalArgumentException | IOException | CustomException e)</span>
+    {
+
+<span class="nc" id="L57">    System.err.println(&quot;Error: &quot; + e.getMessage());</span>
+<span class="nc" id="L58">    System.exit(0); </span>
+    
+<span class="fc" id="L60">    }catch (Exception e)</span>
+    { 
+<span class="fc" id="L62">        System.err.println(&quot;Error: &quot; + e.getMessage());</span>
+<span class="pc" id="L63">        System.exit(0);}</span>
+<span class="fc" id="L64">    } </span>
+    }
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
