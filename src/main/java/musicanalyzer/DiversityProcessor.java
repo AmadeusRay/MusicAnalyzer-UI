@@ -2,15 +2,26 @@ package musicanalyzer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Comparator;
 
 public class DiversityProcessor implements Processor {
     private Map<String, Users> users;
+    private String targetUser; // single user, from the arg
+    private static final int MAX_RECOMMENDATIONS = 50; // cap of 10 recommendations, better performance and also no one wants to see low recommendations
 
     public DiversityProcessor(Map<String, Users> users){
         this.users = users;
+        this.targetUser = null;
+    }
+
+    public DiversityProcessor(Map<String, Users> users, String targetUser) {
+        this.users = users;
+        this.targetUser = targetUser;
+        System.out.println("DiversityProcessor created. Users map size: " + users.size() + ", targetUser: " + targetUser);
     }
 
     @Override
@@ -20,40 +31,90 @@ public class DiversityProcessor implements Processor {
 
     @Override
     public List<String[]> process(List<String[]> data) throws CustomException{
+        System.out.println("Processing diversity for users: " + users.keySet());
+        System.out.println("Target user: " + targetUser);
+        System.out.println("MAX_RECOMMENDATIONS: " + MAX_RECOMMENDATIONS);
 
         for (Users user : users.values()){
             user.calcUserSongStatistics();
-            
         }
 
         List<String[]> results = new ArrayList<>();
 
-        for (Users user : users.values()){
-            Set<String> allSongs = getAllSongs(); // make later
+        if (targetUser != null) {
+            Users user = users.get(targetUser);
+            if (user != null) {
+                processUserRecommendations(user, results);
+            } else {
+                throw new CustomException("Error: User '" + targetUser + "' not found");
+            }
+        } else {
+            for (Users user : users.values()) {
+                System.out.println("Processing recommendations for user: " + user.getUserName());
+                Set<String> allSongs = getAllSongs();
+                Set<String> unratedSongs = getUnratedSongs(user, allSongs);
+                System.out.println("Unrated songs for user: " + unratedSongs.size());
+                int count = 0;
+                for (String song : unratedSongs) {
+                    if (count >= MAX_RECOMMENDATIONS) break;
+                    System.out.println("Processing song: " + song + " for user: " + user.getUserName());
+                    double similarity = calculateUserSongSimilarity(user, song);
+                    String recommendationType = categorizeRecommendation(similarity);
+                    int expectedRating = predictExpectedRating(user, song);
+                    String[] recommendation = new String[4];
+                    recommendation[0] = user.getUserName();
+                    recommendation[1] = song;
+                    recommendation[2] = recommendationType;
+                    recommendation[3] = String.valueOf(expectedRating);
+                    results.add(recommendation);
+                    count++;
+                }
+                System.out.println("Total recommendations for user: " + count);
+            }
+        }
+        return results;
+    }
 
-            Set<String> unratedSongs = getUnratedSongs(user, allSongs); 
-
-            for (String song : unratedSongs) {
-
-                double similarity = calculateUserSongSimilarity(user, song);
-                String recommendationType = categorizeRecommendation(similarity);
-                int expectedRating = predictExpectedRating(user, song);
-          
-
-
+    private void processUserRecommendations(Users user, List<String[]> results) {
+        Set<String> allSongs = getAllSongs();
+        Set<String> unratedSongs = getUnratedSongs(user, allSongs);
+        
+        List<String[]> userRecommendations = new ArrayList<>();
+    
+        for (String song : unratedSongs) {
+            double similarity = calculateUserSongSimilarity(user, song);
+            String recommendationType = categorizeRecommendation(similarity);
+            int expectedRating = predictExpectedRating(user, song);
+    
             String[] recommendation = new String[4];
             recommendation[0] = user.getUserName();
             recommendation[1] = song;
             recommendation[2] = recommendationType;
             recommendation[3] = String.valueOf(expectedRating);
-
-            results.add(recommendation);
-         }
+    
+            userRecommendations.add(recommendation);
         }
-
-        return results;
+    
+        if (targetUser != null) {
+            Collections.sort(userRecommendations, this::compareByRatingDescending); 
+        
+            int count = Math.min(userRecommendations.size(), MAX_RECOMMENDATIONS);
+            for (int i = 0; i < count; i++) {
+                results.add(userRecommendations.get(i));
+            }
+        } else {
+           
+            results.addAll(userRecommendations);
+        }
     }
-
+    
+    private int compareByRatingDescending(String[] rec1, String[] rec2) {
+        int rating1 = Integer.parseInt(rec1[3]);
+        int rating2 = Integer.parseInt(rec2[3]);
+     
+        return Integer.compare(rating2, rating1);    // Compare rating2 to rating1 for descending order, check if this was done before. Check all the sort methods
+    }
+        
     private Set<String> getAllSongs(){
         Set<String> allSongs = new HashSet<>();
         for (Users user : users.values()){
@@ -141,10 +202,5 @@ private int predictExpectedRating(Users user, String song)
         return count > 0 ? (int) Math.round(sum / count) : 3;
     }
 }
-
-
-
-
-
 
 }

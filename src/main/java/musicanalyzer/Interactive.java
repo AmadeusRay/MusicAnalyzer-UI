@@ -70,6 +70,8 @@ public class Interactive {
         String[] args;
         if (choice == 4) {
         args = getRecommendationArgs(context, songData);
+    } else if (choice == 6) { // Diversity mode
+        args = getDiversityArgs(context, songData);
     } else {
         args = getProcessorArgs(choice, context);
     }
@@ -136,6 +138,30 @@ private String[] getRecommendationArgs(ProcessContext context, DataManager songD
     return args;
     }
 
+    private String[] getDiversityArgs(ProcessContext context, DataManager songData) {
+        System.out.print("Username: ");
+        
+        String username = scanner.nextLine().trim();
+        System.out.println();
+        
+  
+        if (username.isEmpty()) {
+            System.out.println("Error: username cannot be empty\n");
+            return getDiversityArgs(context, songData); // Recursively ask again
+        }
+        
+        // verify that username exists in the data from file
+        if (!songData.getAllUsers().containsKey(username)) {
+            System.out.println("Error: User '" + username + "' not found\n");
+            return getDiversityArgs(context, songData); // Recursively ask again
+        }
+        
+        String[] args = {context.selectedFile.getAbsolutePath(), context.outputPath, "-d"};
+        
+        // return if username was entered and validated
+        return new String[]{args[0], args[1], args[2], username};
+    }
+
     // display action menu 
     private void displayActionMenu() {
         System.out.println("1 - Song Stats");
@@ -148,7 +174,7 @@ private String[] getRecommendationArgs(ProcessContext context, DataManager songD
         System.out.print("Select an option: ");
     }
 
-    // valid input within range
+    // valid input within range of options
     private int getValidInput(int min, int max) {
         boolean validInput = false;
         int choice = -1;

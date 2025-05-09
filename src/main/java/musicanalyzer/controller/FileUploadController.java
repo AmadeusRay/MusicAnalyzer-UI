@@ -2,13 +2,11 @@ package musicanalyzer.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import musicanalyzer.*;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -19,87 +17,44 @@ public class FileUploadController {
         return ResponseEntity.ok("Spring Boot is working! Music Analyzer API is ready.");
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("mode") String mode, @RequestParam(value = "songs", required = false) String[] songs) {
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello World!";
+    }
+
+    @GetMapping("/diversity")
+    public ResponseEntity<String> getDiversity(@RequestParam String user) {
         try {
-            // Create DataManager
+            String filePath = "database/files/large_dataset.csv";
+            String outputPath = "output.csv";
+            String[] args = {filePath, outputPath, "-d", user};
+
+            // validate and process input
             DataManager dataManager = new DataManager();
+            FileValidator.validate(args);
+            List<String[]> songStatsList = FileProcessor.processInputFile(filePath, dataManager);
 
-            // Process the large dataset file
-            List<String[]> results = FileProcessor.processInputFile("large_dataset.csv", dataManager);
+            Processor processor = ProcessorFactory.createProcessor(args, dataManager);
 
-            // Create appropriate processor using your factory
-            String[] args;
-            if (mode.equalsIgnoreCase("recommendations")) {
-                if (songs == null || songs.length == 0) {
-                    return ResponseEntity.badRequest().body("Error: At least one song is required for recommendations");
-                }
-                // Combine mode flag with songs for recommendations
-                args = new String[]{"large_dataset.csv", "output.csv", "-r"};
-                args = Arrays.copyOf(args, args.length + songs.length);
-                System.arraycopy(songs, 0, args, 3, songs.length);
-            } else {
-                args = new String[]{"large_dataset.csv", "output.csv", getModeFlag(mode)};
+            // Process and get results ( sorted by DiversityProcessor)
+            List<String[]> results = processor.process(songStatsList);
+
+            // Do NOT sort results here. Just format and return.
+            StringBuilder response = new StringBuilder();
+            response.append("<pre>");
+            response.append("🎵 Diversity Analysis Results 🎵\n\n");
+            response.append("Total Recommendations: ").append(results.size()).append("\n\n");
+            for (String[] result : results) {
+                response.append(String.format("%-10s %-10s %-15s %-5s\n",
+                    result[0], result[1], result[2], result[3]
+                ));
             }
-            
-            Processor processor = ProcessorFactory.createProcessor(args, dataManager);
+            response.append("</pre>");
 
-            // Process the data
-            List<String[]> processedResults = processor.process(results);
-
-            return ResponseEntity.ok("Large dataset processed successfully. Results: " + processedResults.size() + " records processed.");
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Error processing file: " + e.getMessage());
-        } catch (CustomException e) {
+            return ResponseEntity.ok().header("Content-Type", "text/html").body(response.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
-
-    /* Future file upload feature, sticking with large_dataset
-    @PostMapping("/upload-file")
-    public ResponseEntity<String> uploadCustomFile(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("mode") String mode) {
-        try {
-
-            Path tempFile = Files.createTempFile("upload-", ".csv");             // save the uploaded file temporarily
-            file.transferTo(tempFile.toFile());
-
-            DataManager dataManager = new DataManager();
-
-            List<String[]> results = FileProcessor.processInputFile(tempFile.toString(), dataManager);
-
-
-            String[] args = {"input.csv", "output.csv", getModeFlag(mode)};
-            Processor processor = ProcessorFactory.createProcessor(args, dataManager);
-
-
-            List<String[]> processedResults = processor.process(results);
-
-            Files.delete(tempFile);                   // Clean up temp file
-
-            return ResponseEntity.ok("File processed successfully. Results: " + processedResults.size() + " records processed.");
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Error processing file: " + e.getMessage());
-        } catch (CustomException e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
-        }
-    }
-    */
-
-    private String getModeFlag(String mode) {
-        switch (mode.toLowerCase()) {
-           // case "similarity": return "-u";
-           // case "predictions": return "-p";
-           // case "confidence": return "-c";
-           // case "diversity": return "-d";
-           // case "recommendations": return "-r";
-            default: throw new IllegalArgumentException("Unsupported mode: " + mode);
-        }
-    }
-
-    @GetMapping("/modes")
-    public ResponseEntity<String[]> getAvailableModes() {
-        return ResponseEntity.ok(new String[]{"similarity", "diversity", "confidence", "predictions", "recommendations"});
-    }
-} 
+}

@@ -28,39 +28,45 @@ public class ProcessorFactory {
             
         case "confidence":
             return new ConfidenceProcessor(dataManager.getAllUsers());
-        case "diversity":
-            return new DiversityProcessor(dataManager.getAllUsers());
+       case "diversity":
+     
+            if (args.length > 3) {                      // check for a specific user is provided for diversity mode
+                String targetUser = args[3];
+                return new DiversityProcessor(dataManager.getAllUsers(), targetUser);
+            } else {
+                return new DiversityProcessor(dataManager.getAllUsers());
+            }
         default:
             throw new IllegalArgumentException("Unsupported mode " + mode);
 
         }
    }
 
-     private static String selectedMode(String[] args){ 
-        if (args.length == 2) {
-            return "stats";
-            }
+    private static String selectedMode(String[] args){ 
+    if (args.length == 2) {
+        return "stats";
+        }
 
-        validateArguementCount(args);
+    validateArguementCount(args);
 
-        String flag = args[2];
-        switch (flag){
-            case "-r":
-                if (args.length <= 3){
-                    throw new IllegalArgumentException("must select at least one song for recommendations");
-                } 
-                return "recommendations"; 
-            case "-u":
-                return "similarity";
-            case "-p":
-                return "predictions";
-            case "-c":
-                return "confidence";
-            case "-d":
-                return "diversity";
-            default:
-                throw new IllegalArgumentException("Error: '" + args[2] + "'. Only '-u', '-r' and '-p' is allowed.");
-            }
+    String flag = args[2];
+    switch (flag){
+        case "-r":
+            if (args.length <= 3){
+                throw new IllegalArgumentException("must select at least one song for recommendations");
+            } 
+            return "recommendations"; 
+        case "-u":
+            return "similarity";
+        case "-p":
+            return "predictions";
+        case "-c":
+            return "confidence";
+        case "-d":
+            return "diversity";
+        default:
+            throw new IllegalArgumentException("Error: '" + args[2] + "'. Only '-u', '-r', '-p', '-c', and '-d' are allowed.");
+        }
     }
 
     private static void validateArguementCount(String[] args)
