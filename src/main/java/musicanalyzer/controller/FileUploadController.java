@@ -14,7 +14,7 @@ public class FileUploadController {
 
     @GetMapping("/test")
     public ResponseEntity<String> test() {
-        return ResponseEntity.ok("Spring Boot is working! Music Analyzer API is ready.");
+        return ResponseEntity.ok("Spring Boot works. Music Analyzer API is ready.");
     }
 
     @GetMapping("/hello")

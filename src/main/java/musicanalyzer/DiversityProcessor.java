@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Comparator;
 
+
 public class DiversityProcessor implements Processor {
     private Map<String, Users> users;
     private String targetUser; // single user, from the arg
